@@ -13,8 +13,8 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 
 public class CosmosDBBackend {
-    private final static String COSMOS_URI = "https://localhost:8081";
-    private final static String COSMOS_KEY = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==";
+    private final static String COSMOS_URI = "https://mikkrg-e2e-cdb.documents.azure.com:443/";
+    private final static String COSMOS_KEY = "RfSeWofmmUZwBcaXgjE9pwqyO9ibkKwoS7heHgZG232cXNjnWryxW7bHiuSPdvROqQcYla61nk8iACDbkH5UpA==";
     private final static String COSMOS_DATABASE_NAME = "ansi_db";
     private final static String HEADER_CONTAINER_NAME = "ansi_data";
     private final static String EVENTS_CONTAINER_NAME = "evt_data";
@@ -72,7 +72,7 @@ public class CosmosDBBackend {
                 new CosmosContainerProperties(HEADER_CONTAINER_NAME, "/id");
 
         // Provision throughput
-        ThroughputProperties throughputProperties = ThroughputProperties.createManualThroughput(400);
+        ThroughputProperties throughputProperties = ThroughputProperties.createAutoscaledThroughput(10000);
 
         //  Create container with 400 RU/s
         CosmosContainerResponse databaseResponse = database.createContainerIfNotExists(containerProperties, throughputProperties);
@@ -102,7 +102,7 @@ public class CosmosDBBackend {
         logger.info("Update throughput for container " + HEADER_CONTAINER_NAME + ".");
 
         // Specify new throughput value
-        ThroughputProperties throughputProperties = ThroughputProperties.createManualThroughput(800);
+        ThroughputProperties throughputProperties = ThroughputProperties.createAutoscaledThroughput(10000);
         headerContainer.replaceThroughput(throughputProperties);
         eventsContainer.replaceThroughput(throughputProperties);
 
