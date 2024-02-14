@@ -1,4 +1,5 @@
 package org.example;
+import java.io.IOException;
 import java.io.PrintWriter;
 import org.apache.commons.cli.*;
 
@@ -29,6 +30,7 @@ public class Main {
                 System.out.println("create - Creates user");
                 System.out.println("upload - Upload file to database");
                 System.out.println("delete - Deletes file from database");
+                System.out.println("test - Run upload/delete loop test");
                 System.out.println("list - List all files for user");
                 return;
             }
@@ -46,39 +48,22 @@ public class Main {
                     switch (arg) {
                         case "create":
                             System.out.println("Create user " + userName +"…");
-                            backend.createUser(userName);
-                            return;
-                        case "upload":
                             var user = backend.getUser(userName);
                             if (user == null) {
-                                System.err.println("User " + userName + " not found.");
-                                return;
+                                backend.createUser(userName);
                             }
-                            var fileName = line.getOptionValue("file");
-
-                            if (fileName == null) {
-                                System.err.println("No file name provided.");
-                                return;
-                            }
-                            System.out.println("Upload file '" + fileName +"'…");
-                            var file = File.loadFile(fileName);
-                            file.getHeader().setUserId(user.id);
-                           backend.update(file);
+                            return;
+                        case "upload":
+                            upload_command(line, userName, backend);
                             return;
                         case "delete":
-                            user = backend.getUser(userName);
-                            if (user == null) {
-                                System.err.println("User " + userName + " not found.");
-                                return;
-                            }
-                            fileName = line.getOptionValue("file");
-                            if (fileName == null) {
-                                System.err.println("No file name provided.");
-                                return;
-                            }
-                            System.out.println("Delete file '" + fileName +"'…");
-                            backend.deleteFile(user, fileName);
+                            delete_command(line, userName, backend);
                             return;
+                        case "test":
+                            while (true) {
+                                upload_command(line, userName, backend);
+                                delete_command(line, userName, backend);
+                            }
                         case "list":
                             System.out.println("All entries:");
                             for (var entry : backend.getEntries()) {
@@ -97,6 +82,42 @@ public class Main {
         catch (Exception e) {
             System.err.println("Error: " + e);
         }
+    }
+
+    private static void delete_command(CommandLine line, String userName, CosmosDBBackend backend) {
+        User user;
+        user = backend.getUser(userName);
+        if (user == null) {
+            System.err.println("User " + userName + " not found.");
+            return;
+        }
+        var fileName = line.getOptionValue("file");
+        if (fileName == null) {
+            System.err.println("No file name provided.");
+            return;
+        }
+        System.out.println("Delete file '" + fileName +"'…");
+        backend.deleteFile(user, fileName);
+    }
+
+    private static void upload_command(CommandLine line, String userName, CosmosDBBackend backend) throws org.json.simple.parser.ParseException, IOException {
+        User user;
+        user = backend.getUser(userName);
+        if (user == null) {
+            System.err.println("User " + userName + " not found.");
+            return;
+        }
+        var fileName = line.getOptionValue("file");
+        System.out.println("Found user " + userName +"…");
+
+        if (fileName == null) {
+            System.err.println("No file name provided.");
+            return;
+        }
+        System.out.println("Upload file '" + fileName +"'…");
+        var file = File.loadFile(fileName);
+        file.getHeader().setUserId(user.id);
+        backend.update(file);
     }
 }
 // -u C:\work\terminal_rec\test.cast
